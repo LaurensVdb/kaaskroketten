@@ -103,7 +103,9 @@
         function startGame() {
             // Start de timer
             const timer = setInterval(() => {
-                timeLeft--;
+                timeLeft-=1;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawInfo();
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     clearInterval(spawnTimer);
@@ -112,7 +114,7 @@
                     ctx.font = '10px Arial';
                     ctx.fillText(`Spel afgelopen! Eindscore: ${score}`, canvas.width / 2 - 150, canvas.height / 2);
                 }
-            }, 5000);
+            }, 1000);
 
             // Start met het spawnen van objecten
             spawnTimer = setInterval(spawnObject, spawnInterval);
