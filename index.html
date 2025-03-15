@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Spel - Timer en Moeilijkheidsgraad</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        canvas {
+            display: block; /* Geen scrollbalken */
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const canvas = document.createElement('canvas');
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+
+        let score = 0;
+        let timeLeft = 60; // Tijdslimiet in seconden
+        let spawnInterval = 1500; // Startinterval voor objecten (in milliseconden)
+        let spawnTimer;
+
+        // Pas canvas aan schermgrootte aan
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Laad afbeelding
+        const img = new Image();
+        img.src = 'kaaskroket.png'; // Vervang door het pad naar je PNG-afbeelding
+
+        const imgEllen = new Image();
+        imgEllen.src='ellen.png'
+
+        function getRandomPosition(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function drawInfo(){
+         
+            // Toon de score en timer op canvas
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.drawImage(imgEllen, 10, 5, 50, 50);
+            ctx.fillText(`Help jij Ellen haar kaaskroketten te vangen?`, 60, 20);
+            ctx.fillText(`Score: ${score}`, 60, 40);
+            ctx.fillText(`Tijd: ${timeLeft}s`, 60, 60);
+        }
+        function drawObject(x, y) {
+            // Wis canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, x, y, 50, 50);
+            drawInfo();
+        }
+
+        function spawnObject() {
+            const x = getRandomPosition(canvas.width - 50);
+            const y = getRandomPosition(canvas.height - 50);
+            drawObject(x, y);
+
+            const clickHandler = (event) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const clickY = event.clientY - rect.top;
+
+                if (
+                    clickX >= x && clickX <= x + 50 &&
+                    clickY >= y && clickY <= y + 50
+                ) {
+                    score++;
+                    drawObject(x, y); // Update canvas en toon nieuwe score
+                    canvas.removeEventListener('click', clickHandler);
+                    
+                    // Verhoog de moeilijkheidsgraad na elke 5 punten
+                    if (score % 5 === 0 && spawnInterval > 500) {
+                        clearInterval(spawnTimer);
+                        spawnInterval -= 100; // Verkort het interval
+                        spawnTimer = setInterval(spawnObject, spawnInterval);
+                    }
+                }
+            };
+
+            canvas.addEventListener('click', clickHandler);
+
+            setTimeout(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawInfo();
+                canvas.removeEventListener('click', clickHandler);
+            }, 1000); // Object verdwijnt na 1 seconde
+        }
+
+        function startGame() {
+            // Start de timer
+            const timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    clearInterval(spawnTimer);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'black';
+                    ctx.font = '30px Arial';
+                    ctx.fillText(`Spel afgelopen! Eindscore: ${score}`, canvas.width / 2 - 150, canvas.height / 2);
+                }
+            }, 5000);
+
+            // Start met het spawnen van objecten
+            spawnTimer = setInterval(spawnObject, spawnInterval);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
